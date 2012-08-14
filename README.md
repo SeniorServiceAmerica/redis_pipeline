@@ -1,6 +1,6 @@
 # RedisPipeline
 
-TODO: Write a gem description
+Creates a connection and a queue for pipelining commands to a redis server. Intended for mass inserting of data. 
 
 ## Installation
 
@@ -18,7 +18,25 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Create a new pipeline 
+
+```sh
+ pipeline =  RedisPipeline::RedisPineline.new('redis_uri')
+```
+
+Add commands to it either as a single string 
+
+```sh
+ pipeline.add_commands('set hello world')
+```
+
+or an array
+
+```sh
+	array = ['hset person first_name jane', 'hset person last_name doe']
+```
+
+Send them with execute_command. Commands are sent using redis-rb's pipelined mode in batches of 1000. Returns false if there is an error
 
 ## Contributing
 
