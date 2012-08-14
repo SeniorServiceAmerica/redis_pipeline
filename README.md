@@ -34,6 +34,7 @@ or an array
 
 ```ruby
 	array = ['hset gem first_name redis', 'hset gem last_name pipeline']
+	pipeline.add_commands(array)
 ```
 
 Send them with execute_command. Commands are sent using redis-rb's pipelined mode in batches of 1000. Returns false if there is an error
