@@ -79,6 +79,17 @@ class TestPipeline < Test::Unit::TestCase
     assert_equal 0, @pipeline.send(:commands).length
   end
   
+  def test_execute_commands_returns_true_if_successful
+    @pipeline.add_commands(three_batches_of_commands)
+    assert @pipeline.execute_commands
+  end
+  
+  def test_execute_commands_returns_false_if_error
+    mismatched_commands = ['set "string_key" "string_value"', 'hget "string_key" "string_not_a_hash"']
+    @pipeline.add_commands(mismatched_commands)
+    assert_equal false, @pipeline.execute_commands
+  end
+  
   private
 
     def three_batches_of_commands

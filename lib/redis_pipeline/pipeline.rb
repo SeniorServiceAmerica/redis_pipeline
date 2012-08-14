@@ -1,5 +1,5 @@
 module RedisPipeline
-  class Pipeline
+  class RedisPipeline
     require 'uri'
     require 'redis'
     
@@ -16,9 +16,15 @@ module RedisPipeline
     end
     
     def execute_commands
-      while @commands.length > 0
-        pipeline_commands(command_batch)
+      response = true
+      begin
+        while @commands.length > 0
+          pipeline_commands(command_batch)
+        end
+      rescue 
+        response = false
       end
+      response
     end
     
     private
