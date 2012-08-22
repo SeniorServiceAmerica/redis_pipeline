@@ -16,6 +16,17 @@ Or install it yourself as:
 
     $ gem install redis_pipeline
 
+## Setup 
+
+Create the configuration yaml file
+
+    rails generate redis_pipeline
+
+Populate the configuration file with the redis uri and batch size.
+
+* uri defaults to `redis://localhost:6379` if you don't have a configuration file
+* batch size defaults to 1000 if you don't have a configuration file
+
 ## Usage
 
 Create a new pipeline 
@@ -37,7 +48,11 @@ or an array
 	pipeline.add_commands(array)
 ```
 
-Send them with execute_command. Commands are sent using redis-rb's pipelined mode in batches of 1000. Returns false if there is an error
+Send them with execute_commands. Commands are sent using redis-rb's pipelined mode in batches, the size of which are controlled by your configuration. Returns false if there is an error
+
+```ruby
+  pipeline.execute_commands
+```
 
 ## Contributing
 
