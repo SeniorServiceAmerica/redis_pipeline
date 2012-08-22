@@ -5,6 +5,8 @@ module RedisPipeline
         
     attr_reader :settings
     
+    DEFAULT_SETTINGS = {:uri => 'redis://localhost:6379', :batch_size => 1000}
+    
     def initialize()
       configure
       @redis = open_redis_connection
@@ -43,7 +45,6 @@ module RedisPipeline
       def config_path
         if defined?(Rails) && File.exists?(Rails.root.join("config","pipeline_config.yml"))
           Rails.root.join("config","pipeline_config.yml")
-          @environment = Rails.env
         else
           nil
         end
@@ -51,11 +52,14 @@ module RedisPipeline
       
       def configure
         raw_settings = parse_yaml(config_path())
+
         if raw_settings
-          @settings = {:uri => raw_settings[@environment]['uri'], :batch_size => raw_settings[@environment]['pipeline_batch_size']}
+          @settings = raw_settings[Rails.env]
         else
-          @settings = {:uri => 'redis://localhost:6379', :batch_size => 1000}
+          @settings = {}          
         end
+        
+        @settings = DEFAULT_SETTINGS.merge(@settings)
       end
       
       def open_redis_connection
@@ -64,11 +68,7 @@ module RedisPipeline
       end
       
       def parse_yaml(path)
-        if path && File.exists?(path)
-          YAML.load_file(path)
-        else
-          nil
-        end
+        path ? YAML.load_file(path) : nil
       end
 
       def pipeline_commands(command_batch)
