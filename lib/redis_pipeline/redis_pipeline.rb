@@ -1,6 +1,6 @@
 module RedisPipeline
   class RedisPipeline
-    # include GemConfigurator
+    include GemConfigurator
     
     require 'uri'
     require 'redis'
