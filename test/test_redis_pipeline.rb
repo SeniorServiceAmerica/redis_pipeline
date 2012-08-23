@@ -41,7 +41,7 @@ class TestRedisPipeline < Test::Unit::TestCase
     assert_equal commands[0], @pipeline.send(:commands).first
     assert_equal last_command, @pipeline.send(:commands).last
   end
-
+  
   def test_command_batch_returns_batch_size_number_of_items
     full_command_set = three_batches_of_commands
     @pipeline.add_commands(full_command_set)
