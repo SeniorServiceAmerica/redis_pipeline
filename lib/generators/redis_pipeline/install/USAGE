@@ -1,0 +1,8 @@
+Description:
+    Installs the necessary configuration file.
+    
+Example:
+    rails generate redis_pipeline:import
+
+    This will create:
+        config/redis_pipeline.yml
