@@ -38,20 +38,27 @@ Create a new pipeline
 Queue up commands with add_commands either as a single string 
 
 ```ruby
- pipeline.add_commands('set hello world')
+ pipeline.commands.add('set hello world')
 ```
 
 or an array
 
 ```ruby
 	array = ['hset gem first_name redis', 'hset gem last_name pipeline']
-	pipeline.add_commands(array)
+	pipeline.commands.add(array)
 ```
 
-Send them with execute_commands. Commands are sent using redis-rb's pipelined mode in batches, the size of which are controlled by your configuration. Returns false if there is an error
+The `<<` syntax works as well
 
 ```ruby
-  pipeline.execute_commands
+  pipeline.commands << 'set hello world'
+  pipeline.commands << ['hset gem first_name redis', 'hset gem last_name pipeline']
+```
+
+Send them with execute(). Commands are sent using redis-rb's pipelined mode in batches, the size of which are controlled by your configuration. Returns false if there is an error
+
+```ruby
+  pipeline.execute()
 ```
 
 ## Contributing

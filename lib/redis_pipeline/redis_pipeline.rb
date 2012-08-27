@@ -1,26 +1,25 @@
 module RedisPipeline
   class RedisPipeline
     include GemConfigurator
-    
+  
     require 'uri'
     require 'redis'
 
+    # Returns a new pipeline using the configuration provided, or the default settings if no configuration file available.
     def initialize()
       configure
-      @redis = open_redis_connection
-      @commands = []
     end
     
-    def add_commands(new_commands)
-      new_commands = [new_commands] if new_commands.class == String
-      @commands.concat(new_commands)
+    def commands
+      @commands ||= Commands.new
     end
-    
-    def execute_commands
+        
+    # Processess each command. Returns true if all all commands are successful. Returns false if any command fails.
+    def execute
       response = true
       begin
-        while @commands.length > 0
-          pipeline_commands(command_batch)
+        while commands.count > 0
+          commands.execute_batch(redis, settings[:batch_size])
         end
       rescue 
         response = false
@@ -29,34 +28,18 @@ module RedisPipeline
     end
     
     private
-      
-      attr_accessor :commands, :redis
-      
-      def command_batch
-        command_batch = []
-        @commands.first(@settings[:batch_size]).count.times do 
-          command_batch << @commands.shift
-        end
-        command_batch
-      end
-      
-      def default_settings
-        {:uri => 'redis://localhost:6379', :batch_size => 1000}
-      end
 
-      def open_redis_connection
-        uri = URI.parse(settings[:uri])
-        Redis.new(:host => uri.host, :port => uri.port, :password => uri.password)
-      end
-      
-      def pipeline_commands(command_batch)
-        @redis.pipelined do 
-          command_batch.each do |command|
-            redis_args = command.split(" ")
-            @redis.send(*redis_args)
-          end
-        end
-      end
-      
+    def default_settings
+      {:uri => 'redis://localhost:6379', :batch_size => 1000}
+    end
+
+    def open_redis_connection
+      uri = URI.parse(settings[:uri])      
+    end    
+    
+    def redis
+      uri = URI.parse(settings[:uri])
+      @redis ||= Redis.new(:host => uri.host, :port => uri.port, :password => uri.password)
+    end
   end
 end
