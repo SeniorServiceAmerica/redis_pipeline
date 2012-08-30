@@ -90,6 +90,13 @@ class TestRedisPipeline < Test::Unit::TestCase
     assert_equal false, @pipeline.execute_commands
   end
   
+  def test_execute_commands_populates_errors_if_error
+    mismatched_commands = ['set "string_key" "string_value"', 'hget "string_key" "string_not_a_hash"']
+    @pipeline.add_commands(mismatched_commands)
+    @pipeline.execute_commands
+    assert_equal 1, @pipeline.errors.count, "#{@pipeline.errors.inspect}"
+  end
+  
   private
 
     def three_batches_of_commands
