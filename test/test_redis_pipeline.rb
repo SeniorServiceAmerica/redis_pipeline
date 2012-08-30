@@ -95,6 +95,7 @@ class TestRedisPipeline < Test::Unit::TestCase
     @pipeline.add_commands(mismatched_commands)
     @pipeline.execute_commands
     assert_equal 1, @pipeline.errors.count, "#{@pipeline.errors.inspect}"
+    assert_equal 'ERR Operation against a key holding the wrong kind of value', @pipeline.errors[0]
   end
   
   private
