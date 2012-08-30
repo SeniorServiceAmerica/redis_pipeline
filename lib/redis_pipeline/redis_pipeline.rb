@@ -56,7 +56,7 @@ module RedisPipeline
       def pipeline_commands(command_batch)
         @redis.pipelined do 
           command_batch.each do |command|
-            redis_args = command.split(" ")
+            redis_args = command.split("|")
             @redis.send(*redis_args)
           end
         end
