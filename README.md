@@ -38,13 +38,13 @@ Create a new pipeline
 Queue up commands with add_commands either as a single string 
 
 ```ruby
- pipeline.add_commands('set hello world')
+ pipeline.add_commands('set|hello|world')
 ```
 
 or an array
 
 ```ruby
-	array = ['hset gem first_name redis', 'hset gem last_name pipeline']
+	array = ['hset|gem|first_name|redis', '|hset|gem|last_name|pipeline']
 	pipeline.add_commands(array)
 ```
 
