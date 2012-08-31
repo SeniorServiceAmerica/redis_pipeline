@@ -22,21 +22,21 @@ class TestRedisPipeline < Test::Unit::TestCase
   end
   
   def test_add_commands_adds_array_of_commands_as_seperate_commands
-    commands = ["hset person:0 first_name joe", "hest person:0 last_name smith"]
+    commands = ["hset|person:0|first_name|joe", "hest|person:0|last_name|smith"]
     @pipeline.add_commands(commands)
     assert_equal commands.length, @pipeline.send(:commands).length
   end
   
   def test_add_commands_adds_string_as_single_command
-    commands = "hset person:0 first_name joe"
+    commands = "hset|person:0 first_name joe"
     @pipeline.add_commands(commands)
     assert_equal 1, @pipeline.send(:commands).length
   end
   
   def test_add_commands_queues_commands_at_end
-    commands = ["hset person:0 first_name joe", "hest person:0 last_name smith"]
+    commands = ["hset|person:0|first_name|joe", "hest|person:0|last_name|smith"]
     @pipeline.add_commands(commands)
-    last_command = "hset person:1 first_name jane"
+    last_command = "hset|person:1|first_name|jane"
     @pipeline.add_commands(last_command)
     assert_equal commands[0], @pipeline.send(:commands).first
     assert_equal last_command, @pipeline.send(:commands).last
@@ -63,8 +63,8 @@ class TestRedisPipeline < Test::Unit::TestCase
     redis = Redis.new(:host => uri_parsed.host, :port => uri_parsed.port, :password => uri_parsed.password)    
     @pipeline.add_commands(three_batches_of_commands)
     
-    first_command = @pipeline.send(:commands).first.split(" ")
-    last_command = @pipeline.send(:commands).last.split(" ")
+    first_command = @pipeline.send(:commands).first.split("|")
+    last_command = @pipeline.send(:commands).last.split("|")
     assert_equal Hash.new(), redis.send("hgetall", first_command[1])
     assert_equal Hash.new(), redis.send("hgetall", last_command[1])
     
@@ -85,15 +85,23 @@ class TestRedisPipeline < Test::Unit::TestCase
   end
   
   def test_execute_commands_returns_false_if_error
-    mismatched_commands = ['set "string_key" "string_value"', 'hget "string_key" "string_not_a_hash"']
+    mismatched_commands = ['set|"string_key"|"string_value"', 'hget|"string_key"|"string_not_a_hash"']
     @pipeline.add_commands(mismatched_commands)
     assert_equal false, @pipeline.execute_commands
+  end
+  
+  def test_execute_commands_populates_errors_if_error
+    mismatched_commands = ['set|"string_key"|"string_value"', 'hget|"string_key"|"string_not_a_hash"']
+    @pipeline.add_commands(mismatched_commands)
+    @pipeline.execute_commands
+    assert_equal 1, @pipeline.errors.count, "#{@pipeline.errors.inspect}"
+    assert_equal 'ERR Operation against a key holding the wrong kind of value', @pipeline.errors[0]
   end
   
   private
 
     def three_batches_of_commands
-      first_names = ["Lindsey", "Dodie", "Tommie", "Aletha", "Matilda", "Robby", "Forest", "Sherrie", "Elroy", "Darlene", "Blossom", "Preston", "Ivan", "Denisha", "Antonietta", "Lenora", "Fatimah", "Alvaro", "Madeleine", "Johnsie", "Jacki"]
+      first_names = ["Lindsey Sue", "Dodie", "Tommie", "Aletha", "Matilda", "Robby", "Forest", "Sherrie", "Elroy", "Darlene", "Blossom", "Preston", "Ivan", "Denisha", "Antonietta", "Lenora", "Fatimah", "Alvaro", "Madeleine", "Johnsie", "Jacki"]
       last_names = ["Austino", "Egnor", "Mclauglin", "Vettel", "Osornio", "Kloke", "Neall", "Licon", "Bergren", "Guialdo", "Heu", "Lilla", "Fogt", "Ellinghuysen", "Banner", "Gammage", "Fleniken", "Byerley", "Mccandless", "Hatchet", "Segal", "Bagnall", "Mangum", "Marinella", "Hunke", "Klis", "Skonczewski", "Aiava", "Masson", "Hochhauser", "Pfost", "Cripps", "Surrell", "Carstens", "Moeder", "Feller", "Turri", "Plummer", "Liuzza", "Macaskill", "Pirie", "Haase", "Gummersheimer", "Caden", "Balich", "Franssen", "Barbur", "Bonker", "Millar", "Armijo", "Canales", "Kucera", "Ahlstrom", "Marcoux", "Dagel", "Vandonsel", "Lagrasse", "Bolten", "Smyer", "Spiker", "Detz", "Munar", "Oieda", "Westin", "Levenson", "Ramagos", "Lipson", "Crankshaw", "Polton", "Seibt", "Genrich", "Shempert", "Bonillas", "Stout", "Caselli", "Jaji", "Kudo", "Feauto", "Hetland", "Hsieh", "Iwasko", "Jayme", "Lebby", "Dircks", "Hainley", "Gielstra", "Dozois", "Suss", "Matern", "Mcloud", "Fassio", "Blumstein", "Qin", "Gindi", "Petrizzo", "Beath", "Tonneson", "Fraga", "Tamura", "Cappellano", "Galella"]
 
       # each first_name,last_name pair is 2 commands so to get 2 batches plus extra we only need batch_size number pairs plus some extra * 1.33
@@ -102,8 +110,8 @@ class TestRedisPipeline < Test::Unit::TestCase
       (0..number_of_commands).each do |i|
         first = first_names.shift
         last = last_names.shift        
-        commands << "hset person:#{i} first_name #{first}"
-        commands << "hset person:#{i} lsst_name #{last}" 
+        commands << "hset|person:#{i}|first_name|#{first}"
+        commands << "hset|person:#{i}|lsst_name|#{last}" 
         first_names.push(first)
         last_names.push(last)
       end

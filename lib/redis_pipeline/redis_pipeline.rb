@@ -5,10 +5,13 @@ module RedisPipeline
     require 'uri'
     require 'redis'
 
+    attr_reader :errors
+
     def initialize()
       configure
       @redis = open_redis_connection
       @commands = []
+      @errors = []
     end
     
     def add_commands(new_commands)
@@ -22,7 +25,8 @@ module RedisPipeline
         while @commands.length > 0
           pipeline_commands(command_batch)
         end
-      rescue 
+      rescue => error
+        @errors << error.message
         response = false
       end
       response
@@ -52,7 +56,7 @@ module RedisPipeline
       def pipeline_commands(command_batch)
         @redis.pipelined do 
           command_batch.each do |command|
-            redis_args = command.split(" ")
+            redis_args = command.split("|")
             @redis.send(*redis_args)
           end
         end
