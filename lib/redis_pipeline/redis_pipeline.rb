@@ -5,7 +5,7 @@ module RedisPipeline
     require 'uri'
     require 'redis'
 
-    attr_reader :errors, :commands
+    attr_reader :errors
 
     # Instantiates and configures a redis pipeline.
     def initialize()
@@ -29,11 +29,23 @@ module RedisPipeline
       
       errors.empty?
     end
+    
+    # Adds commands to the piplined. Pass either a single command in a string or an array of commands
+    #   pipeline.add_command('set|hello|world') => [all_commands]
+    #   pipeline.add_command(['hset|gem|first_name|redis', '|hset|gem|last_name|pipeline']) => [all_commands]
+    # Within a command the | character is used to separate the parts of the command.
+    # Returns an array of all commands that have been added.
+    #   commands are removed from the array when they are executed
+    def <<(new_commands)
+      new_commands = [new_commands] if !new_commands.respond_to?(:each)
+      commands.concat(new_commands)
+    end
+    alias_method :add_command, :<<
 
     private
       
-      attr_writer :errors, :commands
-      attr_accessor :redis
+      attr_writer :errors
+      attr_accessor :redis, :commands
       
       def command_batch
         command_batch = []
