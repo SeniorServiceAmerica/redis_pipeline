@@ -22,7 +22,7 @@ Create the configuration yaml file
 
     rails generate redis_pipeline
 
-Populate the configuration file with the redis uri and batch size.
+Populate the configuration file with the redis uri and batch size. The configuration file is stored at `config/redis_pipeline.yml`
 
 * uri defaults to `redis://localhost:6379` if you don't have a configuration file
 * batch size defaults to 1000 if you don't have a configuration file
@@ -32,27 +32,29 @@ Populate the configuration file with the redis uri and batch size.
 Create a new pipeline 
 
 ```ruby
- pipeline =  RedisPipeline::RedisPineline.new('redis_uri')
+ pipeline =  RedisPipeline::RedisPineline.new
 ```
 
-Queue up commands with add_commands either as a single string 
+Queue up commands by adding them. You can add a single command as a string. Within a command the | character is used to separate the parts of the command.
 
 ```ruby
- pipeline.add_commands('set|hello|world')
+ pipeline.commands.add('set|hello|world')
 ```
 
-or an array
+Or pass an array of commands.
 
 ```ruby
 	array = ['hset|gem|first_name|redis', '|hset|gem|last_name|pipeline']
-	pipeline.add_commands(array)
+	pipeline.commands.add(array)
 ```
 
-Send them with execute_commands. Commands are sent using redis-rb's pipelined mode in batches, the size of which are controlled by your configuration. Returns false if there is an error
+Send the commands to redis with <tt>execute</tt>. Commands are sent using redis-rb's pipelined mode in batches, the size of which are controlled by your configuration. Returns false if there is an error, true if all commands succeed.
 
 ```ruby
-  pipeline.execute_commands
+  pipeline.execute
 ```
+
+See the pipeline errors by iterating through `pipeline.errors`.
 
 ## Contributing
 

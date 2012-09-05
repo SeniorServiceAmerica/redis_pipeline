@@ -23,28 +23,28 @@ class TestRedisPipeline < Test::Unit::TestCase
   
   def test_add_commands_adds_array_of_commands_as_seperate_commands
     commands = ["hset|person:0|first_name|joe", "hest|person:0|last_name|smith"]
-    @pipeline.add_commands(commands)
+    @pipeline.commands.add(commands)
     assert_equal commands.length, @pipeline.send(:commands).length
   end
   
   def test_add_commands_adds_string_as_single_command
     commands = "hset|person:0 first_name joe"
-    @pipeline.add_commands(commands)
+    @pipeline.commands.add(commands)
     assert_equal 1, @pipeline.send(:commands).length
   end
   
   def test_add_commands_queues_commands_at_end
     commands = ["hset|person:0|first_name|joe", "hest|person:0|last_name|smith"]
-    @pipeline.add_commands(commands)
+    @pipeline.commands.add(commands)
     last_command = "hset|person:1|first_name|jane"
-    @pipeline.add_commands(last_command)
+    @pipeline.commands.add(last_command)
     assert_equal commands[0], @pipeline.send(:commands).first
     assert_equal last_command, @pipeline.send(:commands).last
   end
   
   def test_command_batch_returns_batch_size_number_of_items
     full_command_set = three_batches_of_commands
-    @pipeline.add_commands(full_command_set)
+    @pipeline.commands.add(full_command_set)
     single_batch = @pipeline.send(:command_batch)
     
     upper_limit = (@pipeline.settings[:batch_size] - 1)
@@ -52,7 +52,7 @@ class TestRedisPipeline < Test::Unit::TestCase
   end
   
   def test_command_batch_takes_batch_size_items_out_of_commands
-    @pipeline.add_commands(three_batches_of_commands)
+    @pipeline.commands.add(three_batches_of_commands)
     count = @pipeline.send(:commands).length
     @pipeline.send(:command_batch)
     assert_equal (count - @pipeline.settings[:batch_size]), @pipeline.send(:commands).length
@@ -61,39 +61,39 @@ class TestRedisPipeline < Test::Unit::TestCase
   def test_execute_sends_commands_to_redis
     uri_parsed = URI.parse(@uri)
     redis = Redis.new(:host => uri_parsed.host, :port => uri_parsed.port, :password => uri_parsed.password)    
-    @pipeline.add_commands(three_batches_of_commands)
+    @pipeline.commands.add(three_batches_of_commands)
     
     first_command = @pipeline.send(:commands).first.split("|")
     last_command = @pipeline.send(:commands).last.split("|")
     assert_equal Hash.new(), redis.send("hgetall", first_command[1])
     assert_equal Hash.new(), redis.send("hgetall", last_command[1])
     
-    @pipeline.execute_commands
+    @pipeline.execute
     assert_equal first_command.last, redis.send("hget", *first_command[1..-2])
     assert_equal last_command.last, redis.send("hget", *last_command[1..-2])
   end
   
   def test_after_execute_no_items_in_command
-    @pipeline.add_commands(three_batches_of_commands)
-    @pipeline.execute_commands
+    @pipeline.commands.add(three_batches_of_commands)
+    @pipeline.execute
     assert_equal 0, @pipeline.send(:commands).length
   end
   
   def test_execute_commands_returns_true_if_successful
-    @pipeline.add_commands(three_batches_of_commands)
-    assert @pipeline.execute_commands
+    @pipeline.commands.add(three_batches_of_commands)
+    assert @pipeline.execute
   end
   
   def test_execute_commands_returns_false_if_error
     mismatched_commands = ['set|"string_key"|"string_value"', 'hget|"string_key"|"string_not_a_hash"']
-    @pipeline.add_commands(mismatched_commands)
-    assert_equal false, @pipeline.execute_commands
+    @pipeline.commands.add(mismatched_commands)
+    assert_equal false, @pipeline.execute
   end
   
   def test_execute_commands_populates_errors_if_error
     mismatched_commands = ['set|"string_key"|"string_value"', 'hget|"string_key"|"string_not_a_hash"']
-    @pipeline.add_commands(mismatched_commands)
-    @pipeline.execute_commands
+    @pipeline.commands.add(mismatched_commands)
+    @pipeline.execute
     assert_equal 1, @pipeline.errors.count, "#{@pipeline.errors.inspect}"
     assert_equal 'ERR Operation against a key holding the wrong kind of value', @pipeline.errors[0]
   end

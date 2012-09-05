@@ -5,41 +5,40 @@ module RedisPipeline
     require 'uri'
     require 'redis'
 
-    attr_reader :errors
+    attr_reader :errors, :commands
 
+    # Instantiates and configures a redis pipeline.
     def initialize()
       configure
-      @redis = open_redis_connection
-      @commands = []
-      @errors = []
+      self.redis = open_redis_connection
+      self.commands = Commands.new
+      self.errors = Errors.new
     end
     
-    def add_commands(new_commands)
-      new_commands = [new_commands] if new_commands.class == String
-      @commands.concat(new_commands)
-    end
-    
-    def execute_commands
-      response = true
+    # Sends each command to the redis pipline, where it is processed.
+    # Commands are removed from the command collection when sent to the pipeline.
+    # Returns <tt>true</tt> if all commands succeed. Returns <tt>false</tt> if any command fails.
+    def execute
       begin
-        while @commands.length > 0
+        while commands.length > 0
           pipeline_commands(command_batch)
         end
       rescue => error
-        @errors << error.message
-        response = false
+        errors << error.message
       end
-      response
+      
+      errors.empty?
     end
-    
+
     private
       
-      attr_accessor :commands, :redis
+      attr_writer :errors, :commands
+      attr_accessor :redis
       
       def command_batch
         command_batch = []
-        @commands.first(@settings[:batch_size]).count.times do 
-          command_batch << @commands.shift
+        commands.first(@settings[:batch_size]).count.times do 
+          command_batch << commands.shift
         end
         command_batch
       end
@@ -54,10 +53,10 @@ module RedisPipeline
       end
       
       def pipeline_commands(command_batch)
-        @redis.pipelined do 
+        redis.pipelined do 
           command_batch.each do |command|
             redis_args = command.split("|")
-            @redis.send(*redis_args)
+            redis.send(*redis_args)
           end
         end
       end
