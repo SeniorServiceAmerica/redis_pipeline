@@ -14,7 +14,7 @@ Gem::Specification.new do |gem|
   gem.name          = "redis_pipeline"
   gem.require_paths = ["lib"]
   gem.version       = RedisPipeline::VERSION
-  gem.add_dependency('gem_configurator', '~> 1.0')
+  gem.add_dependency('gem_configurator', '~> 1.2')
   gem.add_dependency              'redis' 
   gem.add_development_dependency  'rake'  
 end

@@ -4,7 +4,7 @@ class TestRedisPipeline < Test::Unit::TestCase
 
   def setup 
     @pipeline = RedisPipeline::RedisPipeline.new
-    @uri = @pipeline.settings[:uri]
+    @uri = @pipeline.settings['uri']
   end
   
   def teardown 
@@ -59,7 +59,7 @@ class TestRedisPipeline < Test::Unit::TestCase
     @pipeline.add_command(full_command_set)
     single_batch = @pipeline.send(:command_batch)
     
-    upper_limit = (@pipeline.settings[:batch_size] - 1)
+    upper_limit = (@pipeline.settings['batch_size'] - 1)
     assert_equal full_command_set[0..upper_limit], single_batch 
   end
   
@@ -67,7 +67,7 @@ class TestRedisPipeline < Test::Unit::TestCase
     @pipeline.add_command(three_batches_of_commands)
     count = @pipeline.send(:commands).length
     @pipeline.send(:command_batch)
-    assert_equal (count - @pipeline.settings[:batch_size]), @pipeline.send(:commands).length
+    assert_equal (count - @pipeline.settings['batch_size']), @pipeline.send(:commands).length
   end
   
   def test_execute_sends_commands_to_redis
@@ -117,7 +117,7 @@ class TestRedisPipeline < Test::Unit::TestCase
       last_names = ["Austino", "Egnor", "Mclauglin", "Vettel", "Osornio", "Kloke", "Neall", "Licon", "Bergren", "Guialdo", "Heu", "Lilla", "Fogt", "Ellinghuysen", "Banner", "Gammage", "Fleniken", "Byerley", "Mccandless", "Hatchet", "Segal", "Bagnall", "Mangum", "Marinella", "Hunke", "Klis", "Skonczewski", "Aiava", "Masson", "Hochhauser", "Pfost", "Cripps", "Surrell", "Carstens", "Moeder", "Feller", "Turri", "Plummer", "Liuzza", "Macaskill", "Pirie", "Haase", "Gummersheimer", "Caden", "Balich", "Franssen", "Barbur", "Bonker", "Millar", "Armijo", "Canales", "Kucera", "Ahlstrom", "Marcoux", "Dagel", "Vandonsel", "Lagrasse", "Bolten", "Smyer", "Spiker", "Detz", "Munar", "Oieda", "Westin", "Levenson", "Ramagos", "Lipson", "Crankshaw", "Polton", "Seibt", "Genrich", "Shempert", "Bonillas", "Stout", "Caselli", "Jaji", "Kudo", "Feauto", "Hetland", "Hsieh", "Iwasko", "Jayme", "Lebby", "Dircks", "Hainley", "Gielstra", "Dozois", "Suss", "Matern", "Mcloud", "Fassio", "Blumstein", "Qin", "Gindi", "Petrizzo", "Beath", "Tonneson", "Fraga", "Tamura", "Cappellano", "Galella"]
 
       # each first_name,last_name pair is 2 commands so to get 2 batches plus extra we only need batch_size number pairs plus some extra * 1.33
-      number_of_commands = (@pipeline.settings[:batch_size]  * 1.33)
+      number_of_commands = (@pipeline.settings['batch_size']  * 1.33)
       commands = []
       (0..number_of_commands).each do |i|
         first = first_names.shift

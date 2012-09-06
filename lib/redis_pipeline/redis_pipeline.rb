@@ -49,18 +49,18 @@ module RedisPipeline
       
       def command_batch
         command_batch = []
-        commands.first(@settings[:batch_size]).count.times do 
+        commands.first(@settings['batch_size']).count.times do 
           command_batch << commands.shift
         end
         command_batch
       end
       
       def default_settings
-        {:uri => 'redis://localhost:6379', :batch_size => 1000}
+        {'uri' => 'redis://localhost:6379', 'batch_size' => 1000}
       end
 
       def open_redis_connection
-        uri = URI.parse(settings[:uri])
+        uri = URI.parse(@settings['uri'])
         Redis.new(:host => uri.host, :port => uri.port, :password => uri.password)
       end
       
